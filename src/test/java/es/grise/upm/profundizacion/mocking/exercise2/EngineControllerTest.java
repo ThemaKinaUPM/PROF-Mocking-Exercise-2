@@ -25,6 +25,9 @@ public class EngineControllerTest {
     Time time;
     EngineController eg;
 
+    /*
+    * Creating class and mocks
+    */
     @BeforeEach
     public void builder(){
         log=mock(Logger.class);
@@ -35,6 +38,9 @@ public class EngineControllerTest {
         when(time.getCurrentTime()).thenReturn(new Timestamp(0));
     }
 
+    /*
+    * testing string format
+    */
     @Test
     public void test01(){
         doAnswer(invocation -> {
@@ -43,12 +49,14 @@ public class EngineControllerTest {
             // verify the invocation is called with the correct index and element
             assertEquals("1970-01-01 01:00:00 Gear changed to STOP", string);
 
-            // return null as this is a void method
             return null;
         }).when(log).log(any(String.class));
         eg.recordGear(GearValues.STOP);
     }
 
+    /*
+    * testing speed alverage
+    */
     @Test
     public void test02(){
         when(spd.getSpeed()).thenReturn(20.0);
@@ -57,6 +65,9 @@ public class EngineControllerTest {
         assertEquals(20,sol);
     }
 
+    /*
+    * testing correct calling
+    */
     @Test
     public void test03(){
 
@@ -64,5 +75,36 @@ public class EngineControllerTest {
         eg.adjustGear();
         verify(spd,times(3)).getSpeed();
     }
-    
+
+    /*
+    * testing gear logs
+    */
+    @Test
+    public void test04() {
+        when(eg.getInstantaneousSpeed()).thenReturn(15.0);//change de speed to obtain diferent gear values
+        doAnswer(invocation -> {
+            String str = invocation.getArgument(0).toString();
+            assertTrue(str.matches(String.format(".*Gear changed to (%s|%s|%s)$", 
+                    GearValues.FIRST, GearValues.SECOND, GearValues.STOP)));
+            System.out.println(str);
+            return null;
+        }).when(log).log(any(String.class));
+        eg.adjustGear();
+    }
+     /*
+    * testing gear asignment
+    */
+    @Test
+    public void test05() {
+        when(eg.getInstantaneousSpeed()).thenReturn(15.0);
+        doAnswer(invocation -> {
+            Object string = invocation.getArgument(0);
+
+            assertEquals("1970-01-01 01:00:00 Gear changed to FIRST", string);
+
+            return null;
+        }).when(log).log(any(String.class));
+        eg.adjustGear();
+
+    }
 }
